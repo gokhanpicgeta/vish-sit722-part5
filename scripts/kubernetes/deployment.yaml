@@ -23,7 +23,10 @@ spec:
         - name: PORT
           value: "8000"
         - name: DATABASE_URL
-          value: "postgresql://sit722_9_2_vish_user:PmD5POiEr3u0lHMZDSX5ty5G8rysrcIM@dpg-cs364056l47c73eaccig-a.singapore-postgres.render.com/sit722_9_2_vish"
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: database-url
           
 ---
 apiVersion: v1
@@ -63,7 +66,10 @@ spec:
         - name: PORT
           value: "8000"
         - name: DATABASE_URL
-          value: "postgresql://sit722_9_2_vish_user:PmD5POiEr3u0lHMZDSX5ty5G8rysrcIM@dpg-cs364056l47c73eaccig-a.singapore-postgres.render.com/sit722_9_2_vish"
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: database-url
 ---
 apiVersion: v1           
 kind: Service
