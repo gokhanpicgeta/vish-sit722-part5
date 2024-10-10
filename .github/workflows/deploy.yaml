@@ -36,6 +36,28 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
 
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+      - name: Add Prometheus and Grafana Helm repo
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+      - name: Deploy Prometheus
+        run: |
+          helm install prometheus prometheus-community/prometheus
+
+      - name: Deploy Grafana
+        run: |
+          helm install grafana prometheus-community/grafana --set adminPassword=admin
+
+      - name: Set Up Port Forwarding (Optional)
+        run: |
+          kubectl port-forward svc/grafana 3000:80 &
+          kubectl port-forward svc/prometheus-server 9090:80 &
+        
       #
       # Builds the Docker image.
       #
@@ -64,5 +86,5 @@ jobs:
       - name: Deploy
         run: ./scripts/deploy.sh
       #Commenting out delete for now 
-      - name: Delete
-        run: ./scripts/delete.sh
+      #- name: Delete
+      #  run: ./scripts/delete.sh
