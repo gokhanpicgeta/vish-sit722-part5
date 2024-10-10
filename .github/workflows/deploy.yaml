@@ -41,13 +41,14 @@ jobs:
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
 
-      - name: Deploy Prometheus
+      - name: Upgrade or Install Prometheus
         run: |
-          helm install prometheus prometheus-community/prometheus
-
-      - name: Deploy Grafana
+            helm upgrade --install prometheus prometheus-community/prometheus
+        
+      - name: Upgrade or Install Grafana
         run: |
-          helm install grafana prometheus-community/grafana --set adminPassword=admin
+            helm upgrade --install grafana prometheus-community/grafana --set adminPassword=admin
+        
 
       - name: Set Up Port Forwarding (Optional)
         run: |
