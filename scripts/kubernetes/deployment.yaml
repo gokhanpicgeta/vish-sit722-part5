@@ -1,3 +1,4 @@
+---
 # book-catalog Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -113,3 +114,35 @@ spec:
     - protocol: TCP
       port: 4000
       targetPort: 8000
+
+---
+# Prometheus Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-server
+spec:
+  type: LoadBalancer
+  selector:
+    app: prometheus
+  ports:
+    - name: prometheus
+      protocol: TCP
+      port: 80
+      targetPort: 9090
+
+---
+# Grafana Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  type: LoadBalancer
+  selector:
+    app: grafana
+  ports:
+    - name: grafana
+      protocol: TCP
+      port: 80
+      targetPort: 3000
