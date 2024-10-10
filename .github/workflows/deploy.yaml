@@ -1,25 +1,11 @@
-# 
-# GitHub Actions workflow.
-#
-# Automatically deploys the Node.js microservice to Kubernetes on push to any branch. 
-# For real use you might want to restrict this to the "prod" branch.
-#
-
 name: Deploy microservice
 
 on:
-  #
-  # Deploys the microservice on push to the main branch of this code repository.
-  #
-  push: 
+  push:
     branches:
       - main
-
-  #
-  # Allows deployment to be invoked manually through the GitHub Actions user interface.
-  #
   workflow_dispatch: 
-    
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -33,6 +19,18 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
+
+      #
+      # Installs Kubectl and connects it to the cluster.
+      #
+      # https://github.com/marketplace/actions/kubernetes-cli-kubectl
+      #
+      - uses: tale/kubectl-action@v1
+        with:
+          base64-kube-config: ${{ secrets.KUBE_CONFIG }}
+          kubectl-version: v1.24.2
+
+      # Now that kubectl is configured, we can install Helm and deploy Prometheus and Grafana
 
       - name: Install Helm
         run: |
@@ -56,15 +54,6 @@ jobs:
           kubectl port-forward svc/grafana 3000:80 &
           kubectl port-forward svc/prometheus-server 9090:80 &
 
-      # Install Kubectl and connect to Kubernetes using the kubeconfig secret
-      - uses: azure/setup-kubectl@v1
-        with:
-          version: 'v1.24.2'
-      
-      - name: Set KUBECONFIG
-        run: |
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > $HOME/.kube/config
-
       #
       # Builds the Docker image.
       #
@@ -78,11 +67,10 @@ jobs:
         run: ./scripts/push-image.sh
 
       #
-      # Deploys the microservice.
+      # Expands the configuration template and deploys the microservice.
       #
       - name: Deploy
         run: ./scripts/deploy.sh
-
-      #Commenting out delete for now 
-      #- name: Delete
-      #  run: ./scripts/delete.sh
+      # Commenting out delete for now 
+      # - name: Delete
+      #   run: ./scripts/delete.sh
