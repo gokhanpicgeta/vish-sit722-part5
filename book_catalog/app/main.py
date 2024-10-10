@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 import crud, models, schemas
 from database import SessionLocal, engine
+from prometheus_fastapi_instrumentator import Instrumentator
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -14,6 +15,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Instrumentator for Prometheus
+Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)
 
 @app.post("/books/", response_model=schemas.Book)
 def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):

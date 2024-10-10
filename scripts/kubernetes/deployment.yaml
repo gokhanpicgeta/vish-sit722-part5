@@ -1,6 +1,4 @@
-# Your Solution
-
-
+# book-catalog Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,7 +13,7 @@ spec:
       labels:
         app: book-catalog
     spec:
-      containers: 
+      containers:
       - name: book-catalog
         image: $CONTAINER_REGISTRY/book-catalog:$VERSION
         imagePullPolicy: Always
@@ -27,8 +25,23 @@ spec:
             secretKeyRef:
               name: database-secret
               key: database-url
-          
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        ports:
+        - containerPort: 8000
+
 ---
+# book-catalog Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -38,31 +51,32 @@ spec:
     app: book-catalog
   type: LoadBalancer
   ports:
-     - name: book-catalog
-       protocol: TCP
-       port: 4001
-       targetPort: 8000
----
+    - name: book-catalog
+      protocol: TCP
+      port: 4001
+      targetPort: 8000
 
+---
+# inventory-management Deployment
 apiVersion: apps/v1
-kind: Deployment  
+kind: Deployment
 metadata:
-  name: inventory-management 
+  name: inventory-management
 spec:
-  replicas: 1 
+  replicas: 1
   selector:
     matchLabels:
-      app: inventory-management 
+      app: inventory-management
   template:
     metadata:
       labels:
         app: inventory-management
     spec:
-      containers: 
-      - name: inventory-management    
+      containers:
+      - name: inventory-management
         image: $CONTAINER_REGISTRY/inventory-management:$VERSION
-        imagePullPolicy: Always  
-        env:                
+        imagePullPolicy: Always
+        env:
         - name: PORT
           value: "8000"
         - name: DATABASE_URL
@@ -70,17 +84,32 @@ spec:
             secretKeyRef:
               name: database-secret
               key: database-url
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        ports:
+        - containerPort: 8000
+
 ---
-apiVersion: v1           
+# inventory-management Service
+apiVersion: v1
 kind: Service
 metadata:
   name: inventory-management
 spec:
   selector:
     app: inventory-management
-  type: LoadBalancer    
+  type: LoadBalancer
   ports:
     - protocol: TCP
       port: 4000
       targetPort: 8000
-
