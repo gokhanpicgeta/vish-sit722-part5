@@ -20,58 +20,53 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
 
-      #
       # Installs Kubectl and connects it to the cluster.
-      #
-      # https://github.com/marketplace/actions/kubernetes-cli-kubectl
-      #
       - uses: tale/kubectl-action@v1
         with:
           base64-kube-config: ${{ secrets.KUBE_CONFIG }}
           kubectl-version: v1.24.2
 
-      # Now that kubectl is configured, we can install Helm and deploy Prometheus and Grafana
-
+      # Install Helm
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-      - name: Add Prometheus and Grafana Helm repo
+      # Add Prometheus Helm repo
+      - name: Add Prometheus Helm repo
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
 
-      - name: Upgrade or Install Prometheus
+      # Add Grafana Helm repo
+      - name: Add the official Grafana Helm repo
         run: |
-            helm upgrade --install prometheus prometheus-community/prometheus
-        
-      - name: Upgrade or Install Grafana
-        run: |
-            helm upgrade --install grafana prometheus-community/grafana --set adminPassword=admin
-        
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
 
+      # Install Prometheus
+      - name: Install Prometheus
+        run: |
+          helm upgrade --install prometheus prometheus-community/prometheus
+
+      # Install or Upgrade Grafana
+      - name: Install or Upgrade Grafana
+        run: |
+          helm upgrade --install grafana grafana/grafana --set adminPassword=admin
+
+      # Set Up Port Forwarding (Optional)
       - name: Set Up Port Forwarding (Optional)
         run: |
           kubectl port-forward svc/grafana 3000:80 &
           kubectl port-forward svc/prometheus-server 9090:80 &
 
-      #
-      # Builds the Docker image.
-      #
-      - name: Build
+      # Build Docker image
+      - name: Build Docker Image
         run: ./scripts/build-image.sh
 
-      #
-      # Publishes the Docker image to the container registry.
-      #
-      - name: Publish
+      # Push Docker image
+      - name: Push Docker Image
         run: ./scripts/push-image.sh
 
-      #
-      # Expands the configuration template and deploys the microservice.
-      #
-      - name: Deploy
+      # Deploy the microservice
+      - name: Deploy Application
         run: ./scripts/deploy.sh
-      # Commenting out delete for now 
-      # - name: Delete
-      #   run: ./scripts/delete.sh
