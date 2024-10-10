@@ -19,6 +19,11 @@ def get_db():
 # Instrumentator for Prometheus
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)
 
+# Root route for liveness probe
+@app.get("/")
+def read_root():
+    return {"message": "Service is running"}
+
 @app.post("/books/", response_model=schemas.Book)
 def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):
     return crud.create_book(db=db, book=book)
